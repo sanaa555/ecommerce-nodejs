@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema(
@@ -11,8 +10,6 @@ const UserSchema = new mongoose.Schema(
       enum: ["user", "seller", "admin"],
       default: "user",
     },
-    resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date },
     products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
   },
   { timestamps: true }
