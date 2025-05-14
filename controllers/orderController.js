@@ -7,12 +7,13 @@ exports.createOrder = async (req, res) => {
       products: req.body.products,
       amount: req.body.amount,
       address: req.body.address,
-      paymentMethod: "cash",
+      paymentMethod: req.body.paymentMethod,
     });
-    const savedOrder = await newOrder.save();
-    res.status(201).json(savedOrder);
+
+    await newOrder.save();
+    res.status(201).json(newOrder);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json(err);
   }
 };
 
@@ -22,10 +23,10 @@ exports.updateOrder = async (req, res) => {
       req.params.id,
       { $set: req.body },
       { new: true }
-    ).populate("products.productId");
+    );
     res.status(200).json(updatedOrder);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json(err);
   }
 };
 
@@ -34,41 +35,38 @@ exports.deleteOrder = async (req, res) => {
     await Order.findByIdAndDelete(req.params.id);
     res.status(200).json("Order has been deleted");
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json(err);
   }
 };
 
 exports.getUserOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ userId: req.params.userId }).populate("products.productId");
+    const orders = await Order.find({ userId: req.params.userId });
     res.status(200).json(orders);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json(err);
   }
 };
 
 exports.getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find().populate("userId", "username");
+    const orders = await Order.find();
     res.status(200).json(orders);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json(err);
   }
 };
 
 exports.getMonthlyIncome = async (req, res) => {
-  const date = new Date();
-  const lastMonth = new Date(date.setMonth(date.getMonth() - 1));
-  const previousMonth = new Date(new Date().setMonth(lastMonth.getMonth() - 1));
-
   try {
+    const date = new Date();
+    const lastMonth = new Date(date.setMonth(date.getMonth() - 1));
     const income = await Order.aggregate([
-      { $match: { createdAt: { $gte: previousMonth } } },
-      { $project: { month: { $month: "$createdAt" }, sales: "$amount" } },
-      { $group: { _id: "$month", total: { $sum: "$sales" } } },
+      { $match: { createdAt: { $gte: lastMonth } } },
+      { $group: { _id: "$month", total: { $sum: "$amount" } } },
     ]);
     res.status(200).json(income);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json(err);
   }
 };

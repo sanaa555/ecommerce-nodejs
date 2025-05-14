@@ -2,19 +2,15 @@ const Cart = require("../models/Cart");
 
 exports.createCart = async (req, res) => {
   try {
-    const existingCart = await Cart.findOne({ userID: req.user.id });
-    if (existingCart) {
-      return res.status(400).json({ message: "User already has a cart" });
-    }
-
     const newCart = new Cart({
-      userID: req.user.id,
+      userId: req.user.id,
       products: req.body.products,
     });
-    const savedCart = await newCart.save();
-    res.status(201).json(savedCart);
+
+    await newCart.save();
+    res.status(201).json(newCart);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json(err);
   }
 };
 
@@ -24,10 +20,10 @@ exports.updateCart = async (req, res) => {
       req.params.id,
       { $set: req.body },
       { new: true }
-    ).populate("products.productId");
+    );
     res.status(200).json(updatedCart);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json(err);
   }
 };
 
@@ -36,24 +32,24 @@ exports.deleteCart = async (req, res) => {
     await Cart.findByIdAndDelete(req.params.id);
     res.status(200).json("Cart has been deleted");
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json(err);
   }
 };
 
 exports.getUserCart = async (req, res) => {
   try {
-    const cart = await Cart.findOne({ userID: req.params.userId }).populate("products.productId");
+    const cart = await Cart.findOne({ userId: req.params.userId });
     res.status(200).json(cart);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json(err);
   }
 };
 
 exports.getAllCarts = async (req, res) => {
   try {
-    const carts = await Cart.find().populate("userID", "username");
+    const carts = await Cart.find();
     res.status(200).json(carts);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json(err);
   }
 };
